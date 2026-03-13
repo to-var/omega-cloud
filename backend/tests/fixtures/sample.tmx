@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tmx SYSTEM "tmx14.dtd">
+<tmx version="1.4">
+  <header creationtool="OmegaWeb" creationtoolversion="0.1"
+          segtype="sentence" o-tmf="OmegaT TMX" adminlang="EN-US"
+          srclang="EN" datatype="plaintext"/>
+  <body>
+    <tu>
+      <tuv xml:lang="EN"><seg>Hello world.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Hola mundo.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Good morning.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Buenos días.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Thank you very much.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Muchas gracias.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Please enter your password.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Por favor, introduzca su contraseña.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>The file has been saved successfully.</seg></tuv>
+      <tuv xml:lang="ES"><seg>El archivo se ha guardado correctamente.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>An error occurred while processing your request.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Se produjo un error al procesar su solicitud.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Are you sure you want to delete this item?</seg></tuv>
+      <tuv xml:lang="ES"><seg>¿Está seguro de que desea eliminar este elemento?</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Your session has expired.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Su sesión ha expirado.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Click here to continue.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Haga clic aquí para continuar.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>No results found.</seg></tuv>
+      <tuv xml:lang="ES"><seg>No se encontraron resultados.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Loading, please wait.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Cargando, por favor espere.</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="EN"><seg>Welcome to our application.</seg></tuv>
+      <tuv xml:lang="ES"><seg>Bienvenido a nuestra aplicación.</seg></tuv>
+    </tu>
+  </body>
+</tmx>
