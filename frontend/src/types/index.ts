@@ -4,6 +4,16 @@ export interface Segment {
   wordCount: number;
 }
 
+/** Per-segment translation and metadata (OmegaT-style). */
+export interface SegmentTranslation {
+  target: string;
+  changedOn: string; // ISO date
+  changedBy: string;
+  createdOn: string;
+  createdBy: string;
+  origin: "translation_memory" | "manual" | "ai_suggested";
+}
+
 export interface Match {
   target: string | null;
   confidence: number;
@@ -21,7 +31,7 @@ export interface MatchResponse {
   segments: SegmentMatch[];
 }
 
-export interface UploadResponse {
+export interface TMListItem {
   tm_id: string;
   source_language: string | null;
   unit_count: number;

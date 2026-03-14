@@ -1,36 +1,50 @@
 import uuid
 
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
-from app.core.dependencies import get_current_user
 from app.models.match import MatchRequest, MatchResponse
-from app.services import matcher, storage, tmx_parser
+from app.services import matcher, tm_repository
 
 router = APIRouter(prefix="/tm", tags=["tm"])
 
 
-@router.post("/upload")
-async def upload_tm(file: UploadFile, user: dict = Depends(get_current_user)):
-    file_bytes = await file.read()
+class TranslationPair(BaseModel):
+    source: str
+    target: str
+
+
+class CreateTMRequest(BaseModel):
+    source_language: str | None = None
+    pairs: list[TranslationPair]
+
+
+@router.get("")
+async def list_tms():
+    """List all translation memories (id, source_language, unit_count)."""
+    items = await tm_repository.list_tms()
+    return {"items": items}
+
+
+@router.post("")
+async def create_tm(body: CreateTMRequest):
+    """Create a new translation memory from pairs (e.g. for scripts or admin)."""
     tm_id = str(uuid.uuid4())
-
-    pairs, source_lang = tmx_parser.parse_tmx(file_bytes)
-
-    storage.upload_tmx(file_bytes, tm_id)
-    storage.upload_parsed(pairs, tm_id)
-
+    pairs = [{"source": p.source, "target": p.target} for p in body.pairs]
+    await tm_repository.create_tm(tm_id, body.source_language, pairs)
     return {
         "tm_id": tm_id,
-        "source_language": source_lang,
+        "source_language": body.source_language,
         "unit_count": len(pairs),
     }
 
 
 @router.post("/match", response_model=MatchResponse)
-async def match_segments(
-    request: MatchRequest, user: dict = Depends(get_current_user)
-):
-    tm_pairs = storage.get_parsed(request.tm_id)
+async def match_segments(request: MatchRequest):
+    try:
+        tm_pairs = await tm_repository.get_parsed(request.tm_id)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
     segments = [
         {"index": s.index, "source": s.source, "wordCount": s.wordCount}

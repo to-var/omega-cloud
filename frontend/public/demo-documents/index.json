@@ -1,0 +1,17 @@
+[
+  {
+    "id": "cat-tool",
+    "name": "CAT tool overview",
+    "file": "cat-tool.md"
+  },
+  {
+    "id": "translation-memory-basics",
+    "name": "Translation memory basics",
+    "file": "translation-memory-basics.md"
+  },
+  {
+    "id": "glossary-and-qa",
+    "name": "Glossary and QA",
+    "file": "glossary-and-qa.md"
+  }
+]

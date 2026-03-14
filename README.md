@@ -1,33 +1,29 @@
-# OmegaT Cloud — Cloud Translation Memory Assistant
+# OmegaCloud — Cloud Translation Memory Assistant
 
-OmegaT Cloud brings the power of professional translation memory to the browser. Built for translation teams and language service providers, it connects directly to your Google Docs, matches source text against your existing translation memories, and surfaces the best translations instantly — eliminating repetitive work and ensuring consistency across every document your team touches.
+> **This is a prototype.** It is not a final product. The UI, data, and behavior are for demonstration and experimentation only. Do not rely on it for production translation work. Features may change or be removed without notice.
+
+OmegaCloud is a browser-based prototype that mimics a translation memory (TM) and CAT-tool workflow: load demo documents, extract segments, match against a TM, and use glossary suggestions and optional AI translation. All demo content is mock data.
+
+---
 
 ## Architecture
 
 ```
 ┌─────────────┐       ┌─────────────────┐       ┌──────────────┐
-│  React SPA  │──REST──▶  FastAPI        │──S3───▶  MinIO / S3  │
-│  :5173      │◀──JWT──│  :8000          │       │  :9000       │
-└─────────────┘       │                 │       └──────────────┘
-                      │  ┌────────────┐ │
-                      │  │ rapidfuzz  │ │
-                      │  │ translate  │ │
-                      │  │ -toolkit   │ │
-                      │  └────────────┘ │
-                      │        │        │
-                      │  ┌─────▼──────┐ │
-                      │  │ Google     │ │
-                      │  │ OAuth2 +   │ │
-                      │  │ Docs API   │ │
-                      │  └────────────┘ │
-                      └─────────────────┘
+│  React SPA  │──REST──▶  FastAPI        │──DB───▶  MongoDB     │
+│  :5173      │       │  :8000          │       │  :27017      │
+│  (prototype │       │  rapidfuzz      │       └──────────────┘
+│   UI)       │       │  matcher        │
+└─────────────┘       └─────────────────┘
 ```
+
+---
 
 ## Quick Start
 
 ```bash
 # 1. Clone the repository
-git clone <repo-url> && cd omegat_cloud
+git clone git@github.com:to-var/omega-cloud.git && cd OmegaCloud
 
 # 2. Copy environment files
 cp backend/.env.example backend/.env
@@ -39,25 +35,37 @@ docker compose up --build
 
 The frontend will be available at `http://localhost:5173` and the API at `http://localhost:8000`.
 
-## Demo Flow
+---
 
-1. **Sign in** — Click "Sign in with Google" on the login page. You'll be redirected through Google OAuth2 and back to the workspace.
-2. **Load a document** — Paste a Google Doc ID (or full URL) into the document input and click "Load Segments." The backend fetches the document via the Google Docs API and splits it into translatable segments.
-3. **Upload a Translation Memory** — Upload a `.tmx` file using the upload area. The file is parsed and stored in S3-compatible storage.
-4. **View matches** — Each segment is automatically matched against the uploaded TM. Color-coded badges show match quality:
-   - **Green** — Exact match (100%)
-   - **Yellow** — Fuzzy match (75–99%)
-   - **Red** — No TM match (AI stub suggestion)
-   - **Gray** — Not yet matched
-5. **Inspect details** — Click any segment to see the full match detail in the right panel, including the target translation, confidence score, and match type.
+## Demo documents (mock data)
 
-## Enterprise Considerations
+Source text comes from **markdown files** in `frontend/src/data/demo-documents/`. They are **embedded at build time** (imported as raw text), so the app never fetches them from the server and always shows the correct content.
 
-- **Shared Translation Memory** — Centralized TM storage so all translators in an organization draw from the same knowledge base, with version history and merge capabilities.
-- **Role-Based Access Control** — Project managers, translators, and reviewers with granular permissions per project and language pair.
-- **Office 365 / Word Integration** — Extend document ingestion beyond Google Docs to support Microsoft Word (`.docx`) and Office 365 online documents.
-- **AI Provider Integration** — Swap the stub AI provider for Anthropic Claude, OpenAI GPT, or Google Gemini to generate high-quality translation suggestions for unmatched segments.
-- **Multi-Language Pair Support** — Handle any source/target language combination with automatic language detection and per-pair TM storage.
-- **Glossary Enforcement** — Ensure consistent terminology by enforcing project-specific glossaries during matching and AI suggestion.
-- **Horizontal Scaling** — Stateless API design allows scaling the backend behind a load balancer; TM storage on S3 supports unlimited capacity.
-- **Audit Logging** — Track every translation decision for compliance and quality assurance purposes.
+- **cat-tool.md** — Overview of CAT tools and core components (TM, glossary, QA, etc.).
+- **translation-memory-basics.md** — Short intro to translation memory and fuzzy matches.
+- **glossary-and-qa.md** — Glossary and quality assurance in CAT tools.
+
+Use the **document dropdown** in the header to switch between these demo documents. To add more demos, add a new `.md` file under `src/data/demo-documents/`, import it in `frontend/src/data/demo.ts` with `?raw`, and add an entry to `DEMO_DOCUMENTS`.
+
+---
+
+## Prototype flow
+
+1. **Select a demo document** — Choose one of the mock markdown documents from the dropdown. Its content is loaded and split into segments automatically.
+2. **Select a Translation Memory** — Choose a TM from the dropdown (data in MongoDB; add via API or scripts).
+3. **Run matching** — Click **Run Matching** to match segments against the selected TM. Match quality is shown with badges (exact / fuzzy / no match).
+4. **Segment editor** — Work in the segment editor or switch to the **Source & translation** diff view. Click a segment or focus its translation field to see **suggested terms** (glossary matches for that segment) in the right panel.
+5. **AI translation** — Click the wand icon on a segment, or “Translate whole document,” to request an OpenAI-powered translation. The backend uses the segment and glossary terms (or the full glossary for whole-document). Set `OPENAI_API_KEY=sk-...` in `backend/.env` (AI provider is OpenAI only).
+
+---
+
+## Configuration (prototype)
+
+- **Backend `.env`** — MongoDB, TM threshold, and `OPENAI_API_KEY` for AI translation (OpenAI only).
+- **Frontend** — Demo document list and glossary/dictionary are in `frontend/src/data/demo.ts`. Demo markdown files live in `frontend/src/data/demo-documents/` and are embedded at build time.
+
+---
+
+## Disclaimer
+
+This project is a **prototype**. It is not intended as a final product. Use it only for evaluation and development. Do not use it for production translation or with sensitive data without proper security and compliance review.

@@ -3,13 +3,11 @@ uvicorn[standard]
 python-jose[cryptography]
 python-multipart
 httpx
-pydantic-settings
-google-auth
-google-auth-oauthlib
-google-api-python-client
 translate-toolkit
 rapidfuzz
-boto3
+motor
+pydantic-settings
 python-dotenv
+openai
 pytest
 pytest-asyncio

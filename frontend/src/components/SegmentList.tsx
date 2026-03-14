@@ -17,7 +17,7 @@ export default function SegmentList({
   if (segments.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400">
-        Load a Google Doc to see segments here.
+        Type or paste text above and click “Extract segments” to see segments here.
       </div>
     );
   }

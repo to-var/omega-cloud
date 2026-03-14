@@ -8,53 +8,61 @@ class AIProvider(ABC):
     async def suggest(self, source: str, context: list[str]) -> str:
         raise NotImplementedError
 
+    @abstractmethod
+    async def translate_with_terms(
+        self, segment_source: str, suggested_terms: list[dict]
+    ) -> str:
+        raise NotImplementedError
 
-class StubProvider(AIProvider):
-    """Placeholder provider that returns a stub translation.
 
-    To integrate a real AI provider:
-    - Create a new class (e.g. AnthropicProvider, OpenAIProvider)
-      that inherits from AIProvider
-    - Implement the suggest() method using the provider's SDK
-    - Register it in get_ai_provider() below
-    """
+class OpenAIProvider(AIProvider):
+    """OpenAI-based provider for translation with optional glossary terms."""
+
+    def __init__(self) -> None:
+        if not settings.OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY is required when AI_PROVIDER=openai")
 
     async def suggest(self, source: str, context: list[str]) -> str:
-        return f"[AI_STUB] Suggested translation for: {source}"
+        return await self.translate_with_terms(
+            source, [{"source": c, "target": ""} for c in context[:10]]
+        )
 
+    async def translate_with_terms(
+        self, segment_source: str, suggested_terms: list[dict]
+    ) -> str:
+        from openai import AsyncOpenAI
 
-# --- Extension point for real providers ---
-#
-# class AnthropicProvider(AIProvider):
-#     async def suggest(self, source: str, context: list[str]) -> str:
-#         import anthropic
-#         client = anthropic.AsyncAnthropic()
-#         message = await client.messages.create(
-#             model="claude-sonnet-4-20250514",
-#             messages=[{"role": "user", "content": f"Translate: {source}"}],
-#         )
-#         return message.content[0].text
-#
-# class OpenAIProvider(AIProvider):
-#     async def suggest(self, source: str, context: list[str]) -> str:
-#         import openai
-#         client = openai.AsyncOpenAI()
-#         response = await client.chat.completions.create(
-#             model="gpt-4o",
-#             messages=[{"role": "user", "content": f"Translate: {source}"}],
-#         )
-#         return response.choices[0].message.content
+        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        terms_block = ""
+        if suggested_terms:
+            terms_lines = [
+                f'  - "{t["source"]}" → "{t["target"]}"'
+                for t in suggested_terms
+            ]
+            terms_block = (
+                "Use the following approved terms in your translation where applicable:\n"
+                + "\n".join(terms_lines)
+                + "\n\n"
+            )
+        prompt = (
+            "You are a professional translator. "
+            + terms_block
+            + "Translate the following text. Reply with only the translation, no explanation.\n\n"
+            f"Text to translate:\n{segment_source}"
+        )
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        content = response.choices[0].message.content
+        return (content or "").strip()
 
 
 def get_ai_provider() -> AIProvider:
-    """Factory that returns the configured AI provider."""
+    """Factory that returns the configured AI provider (OpenAI)."""
     provider = settings.AI_PROVIDER.lower()
-
-    if provider == "stub":
-        return StubProvider()
-    # elif provider == "anthropic":
-    #     return AnthropicProvider()
-    # elif provider == "openai":
-    #     return OpenAIProvider()
-    else:
-        raise ValueError(f"Unknown AI_PROVIDER: {provider}")
+    if provider == "openai":
+        return OpenAIProvider()
+    raise ValueError(
+        f"Unknown AI_PROVIDER: {provider}. Set AI_PROVIDER=openai and OPENAI_API_KEY."
+    )

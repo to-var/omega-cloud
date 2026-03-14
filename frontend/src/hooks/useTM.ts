@@ -1,13 +1,21 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import client from "../api/client";
-import type { MatchResponse, Segment, UploadResponse } from "../types";
+import type { MatchResponse, Segment, TMListItem } from "../types";
 
-export function useUploadTM() {
-  return useMutation<UploadResponse, Error, File>({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await client.post("/tm/upload", formData);
+export function useExtractSegments() {
+  return useMutation<Segment[], Error, string>({
+    mutationFn: async (text: string) => {
+      const res = await client.post("/docs/segments", { text });
+      return res.data;
+    },
+  });
+}
+
+export function useTMs() {
+  return useQuery<{ items: TMListItem[] }>({
+    queryKey: ["tms"],
+    queryFn: async () => {
+      const res = await client.get("/tm");
       return res.data;
     },
   });
