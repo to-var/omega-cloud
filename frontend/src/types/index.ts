@@ -34,6 +34,7 @@ export interface MatchResponse {
 export interface TMListItem {
   tm_id: string;
   source_language: string | null;
+  target_language?: string | null;
   unit_count: number;
 }
 

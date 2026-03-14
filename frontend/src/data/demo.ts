@@ -3,29 +3,29 @@
  * Demo source texts are embedded from markdown files in src/data/demo-documents/.
  */
 
-import catToolMd from "./demo-documents/cat-tool.md?raw";
-import translationMemoryBasicsMd from "./demo-documents/translation-memory-basics.md?raw";
-import glossaryAndQaMd from "./demo-documents/glossary-and-qa.md?raw";
+import earlyArcadeMd from "./demo-documents/early-arcade-and-consoles.md?raw";
+import riseOf3dMd from "./demo-documents/rise-of-3d-and-cdrom.md?raw";
+import indieAndDigitalMd from "./demo-documents/indie-and-digital-distribution.md?raw";
 
 /** List of available demo documents (markdown content embedded at build time). */
 export const DEMO_DOCUMENTS = [
   {
-    id: "cat-tool",
-    name: "CAT tool overview",
-    file: "cat-tool.md",
-    content: catToolMd.trim(),
+    id: "early-arcade-and-consoles",
+    name: "Early arcade and home consoles",
+    file: "early-arcade-and-consoles.md",
+    content: earlyArcadeMd.trim(),
   },
   {
-    id: "translation-memory-basics",
-    name: "Translation memory basics",
-    file: "translation-memory-basics.md",
-    content: translationMemoryBasicsMd.trim(),
+    id: "rise-of-3d-and-cdrom",
+    name: "Rise of 3D and CD-ROM",
+    file: "rise-of-3d-and-cdrom.md",
+    content: riseOf3dMd.trim(),
   },
   {
-    id: "glossary-and-qa",
-    name: "Glossary and QA",
-    file: "glossary-and-qa.md",
-    content: glossaryAndQaMd.trim(),
+    id: "indie-and-digital-distribution",
+    name: "Indie games and digital distribution",
+    file: "indie-and-digital-distribution.md",
+    content: indieAndDigitalMd.trim(),
   },
 ] as const;
 
@@ -46,58 +46,4 @@ export function demoTextToHtml(text: string): string {
 /** Default document name shown in the UI (replaced when a demo doc is loaded). */
 export const DEMO_DOCUMENT_NAME_DEFAULT = "demo_text.txt";
 
-/** Glossary: source term → target term (for consistent terminology). */
-export const DEMO_GLOSSARY: { source: string; target: string }[] = [
-  { source: "CAT tool", target: "Herramienta TAO" },
-  {
-    source: "Computer-Assisted Translation",
-    target: "Traducción Asistida por Ordenador",
-  },
-  { source: "translation memory", target: "memoria de traducción" },
-  { source: "TM", target: "MT" },
-  { source: "terminology management", target: "gestión terminológica" },
-  { source: "glossary", target: "glosario" },
-  { source: "termbase", target: "base terminológica" },
-  { source: "segmented editor", target: "editor segmentado" },
-  { source: "segments", target: "segmentos" },
-  { source: "alignment tools", target: "herramientas de alineación" },
-  { source: "Quality assurance", target: "Garantía de calidad" },
-  { source: "machine translation", target: "traducción automática" },
-];
-
-/** Dictionary: term → definition or translation note. */
-export const DEMO_DICTIONARY: { term: string; definition: string }[] = [
-  {
-    term: "CAT tool",
-    definition:
-      "Software that helps translators by reusing previous translations and managing terminology.",
-  },
-  {
-    term: "Translation memory (TM)",
-    definition:
-      "Database of source and target segment pairs used for reuse and fuzzy matching.",
-  },
-  {
-    term: "Termbase",
-    definition: "Glossary or database of approved terms and their translations.",
-  },
-  {
-    term: "Segment",
-    definition:
-      "A unit of text (sentence or phrase) treated as one translatable item.",
-  },
-  {
-    term: "Alignment",
-    definition:
-      "Process of matching source and target segments to build a TM from existing translations.",
-  },
-  {
-    term: "QA",
-    definition: "Quality assurance; checks for consistency, numbers, and formatting.",
-  },
-  {
-    term: "Fuzzy match",
-    definition:
-      "TM suggestion that is similar but not identical to the current segment.",
-  },
-];
+/** Glossary and dictionary are loaded from the API (see useGlossary / useDictionary). */

@@ -1,0 +1,9 @@
+[
+  {"term": "Arcade", "definition": "Coin-operated cabinet or venue where players pay per game; often associated with high scores and leaderboards.", "target_language": "es"},
+  {"term": "Cartridge", "definition": "Removable ROM cartridge that stores a game; allowed one console to play many titles (e.g. Atari 2600, NES).", "target_language": "es"},
+  {"term": "CD-ROM", "definition": "Optical disc format used for games in the 1990s and 2000s; offered much more storage than cartridges.", "target_language": "es"},
+  {"term": "Indie game", "definition": "Game made by a small team or solo developer, often without a major publisher; associated with creative and experimental design.", "target_language": "es"},
+  {"term": "Roguelike", "definition": "Genre characterized by procedural generation, permadeath, and turn-based or real-time dungeon exploration.", "target_language": "es"},
+  {"term": "Storefront", "definition": "Digital shop where games are sold or distributed (e.g. Steam, itch.io, eShop).", "target_language": "es"},
+  {"term": "FPS", "definition": "First-person shooter; genre where the player views the world from the protagonist's eyes and uses weapons.", "target_language": "es"}
+]

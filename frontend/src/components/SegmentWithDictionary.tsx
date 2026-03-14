@@ -5,12 +5,12 @@ export type { DictionaryEntry };
 
 interface Props {
   source: string;
-  dictionary: DictionaryEntry[];
+  dictionary?: DictionaryEntry[];
   onHighlightDictionaryTerm?: (term: string | null) => void;
   className?: string;
 }
 
-/** Renders segment source with markdown; dictionary terms are inline-highlightable (scroll/highlight in left sidebar). */
+/** Renders segment source as markdown. Pass dictionary + onHighlightDictionaryTerm to enable inline term highlighting (scroll/highlight in left sidebar). */
 export default function SegmentWithDictionary({
   source,
   dictionary,

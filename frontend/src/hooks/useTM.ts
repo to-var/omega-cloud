@@ -11,11 +11,12 @@ export function useExtractSegments() {
   });
 }
 
-export function useTMs() {
+export function useTMs(targetLanguage: string | null) {
   return useQuery<{ items: TMListItem[] }>({
-    queryKey: ["tms"],
+    queryKey: ["tms", targetLanguage],
     queryFn: async () => {
-      const res = await client.get("/tm");
+      const params = targetLanguage ? { target_language: targetLanguage } : {};
+      const res = await client.get("/tm", { params });
       return res.data;
     },
   });

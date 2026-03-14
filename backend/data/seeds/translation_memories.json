@@ -1,0 +1,49 @@
+[
+  {
+    "tm_id": "videogame-demo",
+    "source_language": "en",
+    "target_language": "es",
+    "pairs": [
+      {
+        "source": "Video games began in research labs and arcades before finding a place in the living room.",
+        "target": "Los videojuegos nacieron en laboratorios y salones recreativos antes de llegar al salón."
+      },
+      {
+        "source": "The first commercial arcade game, **Computer Space** (1971), was soon followed by **Pong** (1972), which turned pinball parlors into video game venues.",
+        "target": "El primer arcade comercial, **Computer Space** (1971), fue seguido por **Pong** (1972), que convirtió los salones de pinball en salas de videojuegos."
+      },
+      {
+        "source": "The **Atari 2600** (1977) popularized the cartridge model: one console, many swappable game cartridges.",
+        "target": "El **Atari 2600** (1977) popularizó el modelo del cartucho: una consola, muchos cartuchos intercambiables."
+      },
+      {
+        "source": "Titles like *Space Invaders*, *Pac-Man*, and *Pitfall!* became household names.",
+        "target": "Títulos como *Space Invaders*, *Pac-Man* y *Pitfall!* se convirtieron en nombres conocidos."
+      },
+      {
+        "source": "The 1990s saw video games move from 2D sprites to 3D worlds and from cartridges to optical discs.",
+        "target": "Los noventa vieron a los videojuegos pasar de sprites 2D a mundos 3D y de cartuchos a discos ópticos."
+      },
+      {
+        "source": "CD-ROM offered far more storage than cartridges, enabling full-motion video, orchestral soundtracks, and large amounts of voice and texture data.",
+        "target": "El CD-ROM ofrecía mucha más capacidad que los cartuchos: vídeo a tiempo real, bandas sonoras orquestales y gran cantidad de voz y texturas."
+      },
+      {
+        "source": "First-person shooters such as *Doom* and *Quake* defined PC gaming and online multiplayer.",
+        "target": "Los shooters en primera persona como *Doom* y *Quake* definieron el juego en PC y el multijugador en línea."
+      },
+      {
+        "source": "From the mid-2000s onward, digital storefronts and accessible tools made it possible for small teams and solo developers to release games without a publisher.",
+        "target": "Desde mediados de la década de 2000, las tiendas digitales y las herramientas accesibles permitieron a equipos pequeños y desarrolladores en solitario publicar juegos sin editorial."
+      },
+      {
+        "source": "**Minecraft** started as an indie project before becoming one of the best-selling games of all time.",
+        "target": "**Minecraft** empezó como un proyecto indie antes de convertirse en uno de los juegos más vendidos de la historia."
+      },
+      {
+        "source": "Indie games often focused on a single mechanic, a strong narrative, or a distinct art style.",
+        "target": "Los juegos indie a menudo se centraban en una sola mecánica, una narrativa fuerte o un estilo artístico propio."
+      }
+    ]
+  }
+]

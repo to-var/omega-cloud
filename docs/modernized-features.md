@@ -73,7 +73,7 @@ Glossary is used for consistent terminology and is integrated with AI translatio
 
 | Feature | OmegaT (Java) | OmegaCloud |
 |--------|----------------|------------|
-| **Entries** | Term → definition / note | `DEMO_DICTIONARY`: `term` → `definition` |
+| **Entries** | Term → definition / note | Stored in MongoDB; API `GET /dictionary` returns `entries` (`term` → `definition`) |
 | **Display** | Dictionary pane | **ProjectSidebar**: dictionary list; terms in segment can be highlighted |
 | **In-context** | Click term in source to see definition | **SegmentWithDictionary**: terms in source linked; clicking scrolls to definition in sidebar |
 

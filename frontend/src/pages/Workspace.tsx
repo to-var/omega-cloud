@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useExtractSegments, useMatchSegments, useTMs } from "../hooks/useTM";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useExtractSegments, useMatchSegments } from "../hooks/useTM";
+import { useDictionary, useGlossary } from "../hooks/useGlossaryDictionary";
+import { useLanguages } from "../hooks/useLanguages";
 import MarkdownText from "../components/MarkdownText";
 import SegmentEditor from "../components/SegmentEditor";
 import SegmentWithDictionary from "../components/SegmentWithDictionary";
@@ -10,28 +12,17 @@ import client from "../api/client";
 import GlossarySuggestions, {
   getSuggestionsForSegment,
 } from "../components/GlossarySuggestions";
+import DictionaryTermMatches from "../components/DictionaryTermMatches";
+import FuzzyMatches from "../components/FuzzyMatches";
 import type { Match, Segment, SegmentTranslation } from "../types";
 import {
   DEMO_DOCUMENTS,
   DEMO_DOCUMENT_NAME_DEFAULT,
-  DEMO_GLOSSARY,
-  DEMO_DICTIONARY,
   DEMO_SOURCE_TEXT_FALLBACK,
 } from "../data/demo";
 import type { DemoDocumentId } from "../data/demo";
 
 const USER_NAME = "User";
-
-/** Returns dictionary terms that appear in the given source (case-insensitive). */
-function getTermsInSegment(
-  source: string,
-  dictionary: { term: string }[]
-): string[] {
-  const lower = source.toLowerCase();
-  return dictionary
-    .filter((e) => lower.includes(e.term.toLowerCase()))
-    .map((e) => e.term);
-}
 
 function formatShortDate(iso: string): string {
   try {
@@ -69,7 +60,13 @@ function matchToTranslation(match: Match): SegmentTranslation {
 }
 
 export default function Workspace() {
-  const { data: tmsData, isLoading: tmsLoading } = useTMs();
+  const { data: languagesData } = useLanguages();
+  const supportedLanguages = languagesData?.items ?? [];
+  const [targetLanguage, setTargetLanguage] = useState<string>("es");
+  const { data: glossaryData } = useGlossary(targetLanguage);
+  const { data: dictionaryData } = useDictionary(targetLanguage);
+  const glossary = glossaryData?.entries ?? [];
+  const dictionary = dictionaryData?.entries ?? [];
   const extractSegments = useExtractSegments();
   const matchSegments = useMatchSegments();
 
@@ -93,7 +90,6 @@ export default function Workspace() {
   const [translations, setTranslations] = useState<Map<number, SegmentTranslation>>(new Map());
   const [aiTranslatingSegmentIndex, setAiTranslatingSegmentIndex] = useState<number | null>(null);
   const [aiTranslatingAll, setAiTranslatingAll] = useState(false);
-  const [scrollToDictionaryTerm, setScrollToDictionaryTerm] = useState<string | null>(null);
 
   const extractDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clearDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -166,6 +162,27 @@ export default function Workspace() {
     setTranslations(newTranslations);
   }, [tmId, segments, matchSegments]);
 
+  // Auto-run matching when TM or segments change (so fuzzy results appear)
+  useEffect(() => {
+    if (tmId && segments.length > 0) {
+      matchSegments
+        .mutateAsync({ segments, tm_id: tmId })
+        .then((matchResult) => {
+          const newMatches = new Map<number, Match>();
+          const newTranslations = new Map<number, SegmentTranslation>();
+          matchResult.segments.forEach((sm) => {
+            newMatches.set(sm.index, sm.match);
+            newTranslations.set(sm.index, matchToTranslation(sm.match));
+          });
+          setMatches(newMatches);
+          setTranslations(newTranslations);
+        })
+        .catch(() => {});
+    } else {
+      setMatches(new Map());
+    }
+  }, [tmId, segments]); // Intentionally omit matchSegments to avoid loops
+
   const handleTranslationChange = useCallback(
     (index: number, target: string) => {
       const ts = nowIso();
@@ -194,13 +211,14 @@ export default function Workspace() {
       try {
         const suggestedTerms = getSuggestionsForSegment(
           segment.source,
-          DEMO_GLOSSARY
+          glossary
         );
         const { data } = await client.post<{ translation: string }>(
           "/ai/translate",
           {
             segment_source: segment.source,
             suggested_terms: suggestedTerms,
+            target_language: targetLanguage || undefined,
           }
         );
         const ts = nowIso();
@@ -223,7 +241,7 @@ export default function Workspace() {
         setAiTranslatingSegmentIndex(null);
       }
     },
-    [segments]
+    [segments, glossary]
   );
 
   const handleTranslateWholeDocument = useCallback(async () => {
@@ -236,7 +254,8 @@ export default function Workspace() {
           "/ai/translate",
           {
             segment_source: seg.source,
-            suggested_terms: DEMO_GLOSSARY,
+            suggested_terms: glossary,
+            target_language: targetLanguage || undefined,
           }
         );
         setTranslations((prev) => {
@@ -257,23 +276,50 @@ export default function Workspace() {
       }
     }
     setAiTranslatingAll(false);
-  }, [segments]);
+  }, [segments, glossary]);
 
   const selectedSegment = segments.find((s) => s.index === selectedIndex);
-  const highlightedDictionaryTerms = useMemo(() => {
-    const seg = segments.find((s) => s.index === selectedIndex);
-    return seg ? getTermsInSegment(seg.source, DEMO_DICTIONARY) : [];
-  }, [selectedIndex, segments]);
   const selectedTranslation =
     selectedIndex !== null ? translations.get(selectedIndex) ?? null : null;
-  const tms = tmsData?.items ?? [];
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-100">
-      <header className="flex shrink-0 items-center border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <header className="flex shrink-0 flex-wrap items-center gap-4 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
         <h1 className="text-xl font-bold tracking-tight text-slate-900">
           OmegaT Cloud
         </h1>
+        <div className="flex items-center gap-2">
+          <label htmlFor="target-lang" className="text-sm font-medium text-slate-600">
+            Target language:
+          </label>
+          <select
+            id="target-lang"
+            value={targetLanguage}
+            onChange={(e) => setTargetLanguage(e.target.value)}
+            className="rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            {supportedLanguages.map(({ code, name }) => (
+              <option key={code} value={code}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+        {tmId && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">TM:</span>
+            <span className="text-sm font-medium text-slate-700">{tmId}</span>
+            <button
+              type="button"
+              onClick={() => handleRunMatching()}
+              disabled={segments.length === 0 || matchSegments.isPending}
+              title="Match segments against the selected TM"
+              className="rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {matchSegments.isPending ? "Matching…" : "Run Matching"}
+            </button>
+          </div>
+        )}
       </header>
       <MenuBar />
       <Toolbar />
@@ -286,10 +332,13 @@ export default function Workspace() {
             demoDocuments={[...DEMO_DOCUMENTS]}
             selectedDemoId={selectedDemoId}
             onSelectDemoDocument={setSelectedDemoId}
-            glossary={DEMO_GLOSSARY}
-            dictionary={DEMO_DICTIONARY}
-            highlightedDictionaryTerms={highlightedDictionaryTerms}
-            scrollToDictionaryTerm={scrollToDictionaryTerm}
+            selectedTmId={tmId}
+            onSelectTm={setTmId}
+            targetLanguage={targetLanguage}
+            glossary={glossary}
+            dictionary={dictionary}
+            highlightedDictionaryTerms={[]}
+            scrollToDictionaryTerm={null}
           />
         </aside>
 
@@ -375,11 +424,7 @@ export default function Workspace() {
                             className="grid grid-cols-2 border-slate-200"
                           >
                             <div className="border-r border-slate-200 bg-red-50/30 px-4 py-3 text-sm text-slate-800">
-                              <SegmentWithDictionary
-                                source={seg.source}
-                                dictionary={DEMO_DICTIONARY}
-                                onHighlightDictionaryTerm={setScrollToDictionaryTerm}
-                              />
+                              <SegmentWithDictionary source={seg.source} />
                             </div>
                             <div className="bg-emerald-50/30 px-4 py-3 text-sm text-slate-800">
                               {(() => {
@@ -403,12 +448,10 @@ export default function Workspace() {
                 <SegmentEditor
                   segments={segments}
                   translations={translations}
-                  dictionary={DEMO_DICTIONARY}
                   selectedIndex={selectedIndex}
                   onSelectSegment={setSelectedIndex}
                   onTranslationChange={handleTranslationChange}
                   onRequestAiTranslation={handleRequestAiTranslation}
-                  onHighlightDictionaryTerm={setScrollToDictionaryTerm}
                   aiTranslatingSegmentIndex={aiTranslatingSegmentIndex}
                   userName={USER_NAME}
                 />
@@ -480,18 +523,51 @@ export default function Workspace() {
           </div>
         </main>
 
-        {/* Right: Fuzzy Matches, Multiple Translations — sticky */}
+        {/* Right: TM / Fuzzy match, Glossary, Dictionary — sticky */}
         <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-3 py-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Suggested terms
-            </h2>
+          <div className="flex min-h-0 flex-1 flex-col border-b border-slate-200">
+            <div className="shrink-0 px-3 py-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Fuzzy / TM match
+              </h2>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <FuzzyMatches
+                match={selectedIndex !== null ? matches.get(selectedIndex) ?? null : null}
+                source={selectedSegment?.source ?? null}
+                onInsert={
+                  selectedIndex !== null
+                    ? (target) => handleTranslationChange(selectedIndex, target)
+                    : undefined
+                }
+              />
+            </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-auto">
-            <GlossarySuggestions
-              segmentSource={selectedSegment?.source ?? null}
-              glossary={DEMO_GLOSSARY}
-            />
+          <div className="flex min-h-0 flex-1 flex-col border-b border-slate-200">
+            <div className="shrink-0 px-3 py-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Glossary term matches
+              </h2>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <GlossarySuggestions
+                segmentSource={selectedSegment?.source ?? null}
+                glossary={glossary}
+              />
+            </div>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col border-t border-slate-200">
+            <div className="shrink-0 px-3 py-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Dictionary term matches
+              </h2>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <DictionaryTermMatches
+                segmentSource={selectedSegment?.source ?? null}
+                dictionary={dictionary}
+              />
+            </div>
           </div>
         </aside>
       </div>

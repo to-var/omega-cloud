@@ -3,7 +3,6 @@ import re
 from rapidfuzz import fuzz
 
 from app.core.config import settings
-from app.services.ai_stub import get_ai_provider
 
 
 def normalize(text: str) -> str:
@@ -16,10 +15,10 @@ async def find_matches(
     tm_pairs: list[dict],
     threshold: int | None = None,
 ) -> list[dict]:
+    """Match segments against TM only. No AI fallback; use the AI translate action for that."""
     if threshold is None:
         threshold = settings.TM_FUZZY_THRESHOLD
 
-    ai_provider = get_ai_provider()
     normalized_tm = [(normalize(p["source"]), p) for p in tm_pairs]
     results: list[dict] = []
 
@@ -64,16 +63,14 @@ async def find_matches(
                 },
             })
         else:
-            context = [p["source"] for p in tm_pairs[:5]]
-            ai_suggestion = await ai_provider.suggest(source, context)
             results.append({
                 "index": seg["index"],
                 "source": source,
                 "match": {
-                    "target": ai_suggestion,
+                    "target": "",
                     "confidence": 0,
                     "matchType": "none",
-                    "aiSuggested": True,
+                    "aiSuggested": False,
                 },
             })
 

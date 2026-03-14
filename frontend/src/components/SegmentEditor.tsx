@@ -5,7 +5,7 @@ import SegmentWithDictionary from "./SegmentWithDictionary";
 interface Props {
   segments: Segment[];
   translations: Map<number, SegmentTranslation>;
-  dictionary: DictionaryEntry[];
+  dictionary?: DictionaryEntry[];
   selectedIndex: number | null;
   onSelectSegment: (index: number) => void;
   onTranslationChange: (index: number, target: string) => void;

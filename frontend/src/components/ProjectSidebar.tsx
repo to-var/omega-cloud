@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { DemoDocumentId } from "../data/demo";
+import { useTMs } from "../hooks/useTM";
 
-type SectionKey = "project" | "glossary" | "dictionaries";
+type SectionKey = "project" | "tms" | "glossary" | "dictionaries";
 
 export interface GlossaryEntry {
   source: string;
@@ -25,6 +26,12 @@ export interface ProjectSidebarProps {
   demoDocuments: ReadonlyArray<DemoDocumentItem>;
   selectedDemoId: DemoDocumentId;
   onSelectDemoDocument: (id: DemoDocumentId) => void;
+  /** Selected TM id (from database). */
+  selectedTmId: string | null;
+  /** Callback when user selects a TM in the sidebar. */
+  onSelectTm: (tmId: string | null) => void;
+  /** Current target language (filters TMs, glossary, dictionary). */
+  targetLanguage: string | null;
   glossary: GlossaryEntry[];
   dictionary: DictionaryEntry[];
   /** Terms to highlight in the Dictionary list (e.g. terms contained in the selected segment). */
@@ -33,19 +40,24 @@ export interface ProjectSidebarProps {
   scrollToDictionaryTerm: string | null;
 }
 
-/** OmegaT-style left pane: vertically collapsible Project Files, Glossary, Dictionary. */
+/** OmegaT-style left pane: vertically collapsible Project Files, Translation memories, Glossary, Dictionary. */
 export default function ProjectSidebar({
   documentName,
   demoDocuments,
   selectedDemoId,
   onSelectDemoDocument,
+  selectedTmId,
+  onSelectTm,
+  targetLanguage,
   glossary,
   dictionary,
   highlightedDictionaryTerms,
   scrollToDictionaryTerm,
 }: ProjectSidebarProps) {
+  const { data: tmsData, isLoading: tmsLoading } = useTMs(targetLanguage);
+  const tms = tmsData?.items ?? [];
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(
-    new Set(["project"])
+    new Set(["project", "tms"])
   );
   const dictionaryEntryRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -94,6 +106,47 @@ export default function ProjectSidebar({
                 }`}
               >
                 {d.file}
+              </button>
+            );
+          })}
+        </div>
+      ),
+    },
+    {
+      key: "tms",
+      label: "Translation memories",
+      children: tmsLoading ? (
+        <div className="flex items-center justify-center p-4 text-xs text-slate-400">
+          Loading…
+        </div>
+      ) : tms.length === 0 ? (
+        <div className="flex items-center justify-center p-4 text-xs text-slate-400">
+          No translation memories in database.
+        </div>
+      ) : (
+        <div className="space-y-0.5 text-xs text-slate-600">
+          <button
+            type="button"
+            onClick={() => onSelectTm(null)}
+            className={`block w-full rounded py-1.5 px-2 text-left transition hover:bg-slate-100 ${
+              selectedTmId === null ? "bg-emerald-100 font-medium text-emerald-800" : ""
+            }`}
+          >
+            — None —
+          </button>
+          {tms.map((tm) => {
+            const isSelected = selectedTmId === tm.tm_id;
+            return (
+              <button
+                key={tm.tm_id}
+                type="button"
+                onClick={() => onSelectTm(tm.tm_id)}
+                className={`block w-full rounded py-1.5 px-2 text-left transition hover:bg-slate-100 ${
+                  isSelected ? "bg-emerald-100 font-medium text-emerald-800" : ""
+                }`}
+                title={`${tm.tm_id} · ${tm.unit_count} units`}
+              >
+                {tm.tm_id} ({tm.unit_count})
               </button>
             );
           })}

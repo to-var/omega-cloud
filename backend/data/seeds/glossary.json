@@ -1,0 +1,14 @@
+[
+  {"source": "arcade", "target": "arcade", "target_language": "es"},
+  {"source": "console", "target": "consola", "target_language": "es"},
+  {"source": "cartridge", "target": "cartucho", "target_language": "es"},
+  {"source": "CD-ROM", "target": "CD-ROM", "target_language": "es"},
+  {"source": "first-person shooter", "target": "shooter en primera persona", "target_language": "es"},
+  {"source": "FPS", "target": "FPS", "target_language": "es"},
+  {"source": "indie game", "target": "juego indie", "target_language": "es"},
+  {"source": "platformer", "target": "plataformas", "target_language": "es"},
+  {"source": "roguelike", "target": "roguelike", "target_language": "es"},
+  {"source": "digital distribution", "target": "distribución digital", "target_language": "es"},
+  {"source": "storefront", "target": "tienda digital", "target_language": "es"},
+  {"source": "game engine", "target": "motor de juego", "target_language": "es"}
+]

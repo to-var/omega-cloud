@@ -1,17 +1,17 @@
 [
   {
-    "id": "cat-tool",
-    "name": "CAT tool overview",
-    "file": "cat-tool.md"
+    "id": "early-arcade-and-consoles",
+    "name": "Early arcade and home consoles",
+    "file": "early-arcade-and-consoles.md"
   },
   {
-    "id": "translation-memory-basics",
-    "name": "Translation memory basics",
-    "file": "translation-memory-basics.md"
+    "id": "rise-of-3d-and-cdrom",
+    "name": "Rise of 3D and CD-ROM",
+    "file": "rise-of-3d-and-cdrom.md"
   },
   {
-    "id": "glossary-and-qa",
-    "name": "Glossary and QA",
-    "file": "glossary-and-qa.md"
+    "id": "indie-and-digital-distribution",
+    "name": "Indie games and digital distribution",
+    "file": "indie-and-digital-distribution.md"
   }
 ]

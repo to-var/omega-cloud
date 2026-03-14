@@ -6,8 +6,12 @@ httpx
 translate-toolkit
 rapidfuzz
 motor
+sqlalchemy[asyncio]
+aiosqlite
+asyncpg
 pydantic-settings
 python-dotenv
 openai
+anthropic
 pytest
 pytest-asyncio

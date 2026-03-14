@@ -27,7 +27,7 @@ export default function GlossarySuggestions({
   if (!segmentSource?.trim()) {
     return (
       <div className="flex h-full items-center justify-center p-3 text-xs text-slate-400">
-        Select a segment to see suggested terms.
+        Select a segment to see glossary term matches.
       </div>
     );
   }
@@ -37,7 +37,7 @@ export default function GlossarySuggestions({
   if (suggestions.length === 0) {
     return (
       <div className="flex h-full items-center justify-center p-3 text-xs text-slate-400">
-        No glossary terms match this segment.
+        No glossary term matches for this segment.
       </div>
     );
   }
