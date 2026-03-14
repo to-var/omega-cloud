@@ -8,13 +8,13 @@ This document describes features that have been brought from the **OmegaT (Java)
 
 | Feature | OmegaT (Java) | OmegaCloud |
 |--------|----------------|------------|
-| **TM storage** | Local `.tmx` files / project folder | MongoDB; TMs created via API or scripts |
-| **TM listing** | Project-specific TM files | `GET /tm` — list all TMs with `tm_id`, `source_language`, `unit_count` |
-| **TM creation** | Import TMX, create from project | `POST /tm` — create from `source_language` + list of source/target pairs |
-| **TMX parsing** | Built-in (OmegaT format) | Backend `tmx_parser` using `translate.storage.tmx`; returns pairs + optional `srclang` |
-| **Match request** | Per-segment lookup against loaded TMs | `POST /tm/match` — send segments + `tm_id`; returns matches per segment |
+| **TM storage** | Local `.tmx` files / project folder | Database (MongoDB or SQL); TMs created via API or seeded from JSON |
+| **TM listing** | Project-specific TM files | `GET /tm` — list TMs with `tm_id`, `source_language`, `target_language`, `unit_count`; optional `?target_language=` filter |
+| **TM creation** | Import TMX, create from project | `POST /tm` — create from `source_language`, `target_language`, and list of source/target pairs |
+| **TMX parsing** | Built-in (OmegaT format) | Backend `tmx_parser`; returns pairs + optional `srclang` |
+| **Match request** | Per-segment lookup against loaded TMs | `POST /tm/match` — send segments + `tm_id`; returns matches per segment (TM only; no AI fallback) |
 
-Behavior is aligned with OmegaT: one or more TMs can be used; matching is done server-side with configurable fuzzy threshold.
+Behavior is aligned with OmegaT: one or more TMs can be used; matching is done server-side with configurable fuzzy threshold. TMs are tagged with **target_language** so the UI can filter by the selected translation target.
 
 ---
 
@@ -36,10 +36,10 @@ Segments are the unit of work: each has an index, source text, and word count. T
 |--------|----------------|------------|
 | **Exact match** | 100% identity (normalized) | Same: normalized comparison, `matchType: "exact"`, `confidence: 100` |
 | **Fuzzy match** | Similarity score above threshold | `rapidfuzz.fuzz.ratio`; configurable `TM_FUZZY_THRESHOLD`; `matchType: "fuzzy"`, `confidence` 0–99 |
-| **No match** | Empty or below threshold | `matchType: "none"`; optionally filled by AI (see New Features) |
+| **No match** | Empty or below threshold | `matchType: "none"`; no AI fallback (use AI translate action separately) |
 | **Normalization** | Whitespace/case handling | `normalize()`: strip and collapse internal whitespace for comparison |
 
-Match types are exposed in the UI with **MatchBadge** (exact / fuzzy / no match) and in the **FuzzyMatches** panel for the selected segment.
+Match types are exposed in the UI with **MatchBadge** (exact / fuzzy / no match) and in the **Fuzzy / TM match** panel for the selected segment; the user can **insert** the fuzzy/TM target into the segment from that panel.
 
 ---
 
@@ -61,11 +61,12 @@ The editor preserves the OmegaT-style workflow: select segment → see source an
 
 | Feature | OmegaT (Java) | OmegaCloud |
 |--------|----------------|------------|
-| **Term pairs** | Source → target (TBX/CSV/OmegaT glossary) | In-memory glossary: `source` → `target` (demo data in `demo.ts`) |
-| **Suggestions** | Shown for active segment | **GlossarySuggestions**: terms whose source appears in segment (case-insensitive) |
-| **Usage** | Insert term into target | Display only in prototype; terms are passed to AI when using AI translation |
+| **Term pairs** | Source → target (TBX/CSV/OmegaT glossary) | Stored in database; seeded from `backend/data/seeds/glossary.json`; entries have `source`, `target`, `target_language` |
+| **API** | N/A | `GET /glossary?target_language=` — returns entries filtered by target language |
+| **Suggestions** | Shown for active segment | **Glossary term matches** (right panel): terms whose source appears in segment (case-insensitive) |
+| **Usage** | Insert term into target | Display in right panel; terms are passed to AI when using AI translation |
 
-Glossary is used for consistent terminology and is integrated with AI translation (suggested terms sent to the AI provider).
+Glossary is used for consistent terminology and is integrated with AI translation. The list is filtered by the **target language** selected in the header.
 
 ---
 
@@ -73,11 +74,12 @@ Glossary is used for consistent terminology and is integrated with AI translatio
 
 | Feature | OmegaT (Java) | OmegaCloud |
 |--------|----------------|------------|
-| **Entries** | Term → definition / note | Stored in MongoDB; API `GET /dictionary` returns `entries` (`term` → `definition`) |
-| **Display** | Dictionary pane | **ProjectSidebar**: dictionary list; terms in segment can be highlighted |
-| **In-context** | Click term in source to see definition | **SegmentWithDictionary**: terms in source linked; clicking scrolls to definition in sidebar |
+| **Entries** | Term → definition / note | Stored in database; seeded from `backend/data/seeds/dictionary.json`; entries have `term`, `definition`, `target_language` |
+| **API** | N/A | `GET /dictionary?target_language=` — returns entries filtered by target language |
+| **Display** | Dictionary pane | **ProjectSidebar**: dictionary list; **Dictionary term matches** (right panel) for selected segment |
+| **In-context** | Click term in source to see definition | Matches shown in right column only; no inline highlighting by default |
 
-Dictionary supports understanding of terms during translation, similar to OmegaT’s dictionary pane.
+Dictionary is filtered by **target language**; term definitions support understanding during translation. OmegaT’s dictionary pane.
 
 ---
 
@@ -85,11 +87,12 @@ Dictionary supports understanding of terms during translation, similar to OmegaT
 
 | Feature | OmegaT (Java) | OmegaCloud |
 |--------|----------------|------------|
-| **Documents** | Add files to project, supported formats | Demo: markdown files embedded at build time; select via document dropdown |
-| **Project sidebar** | Files, glossary, dictionary | **ProjectSidebar**: document list, glossary, dictionary; highlighted terms for selected segment |
+| **Documents** | Add files to project, supported formats | Demo: markdown files (videogame history) in `frontend/src/data/demo-documents/`; select via document dropdown |
+| **Project sidebar** | Files, glossary, dictionary | **ProjectSidebar**: document list, Translation memories (TM selector), glossary, dictionary |
+| **Target language** | Project/locale setting | Header dropdown from `GET /languages`; filters glossary, dictionary, TM list |
 | **Document name** | From file path/name | Displayed in header/footer (e.g. `documentName`) |
 
-In the prototype, “projects” are represented by the selected demo document and the chosen TM; full project bundles (like OmegaT’s project folder) are not yet implemented.
+In the prototype, “projects” are represented by the selected demo document, target language, and the chosen TM; full project bundles (like OmegaT’s project folder) are not yet implemented.
 
 ---
 
@@ -97,9 +100,10 @@ In the prototype, “projects” are represented by the selected demo document a
 
 OmegaCloud reimplements the core OmegaT workflow in a client–server architecture:
 
-- **TM**: create, list, match against MongoDB-stored TMs; TMX import support in backend.
-- **Segments**: extract from text via API; display and edit in segment editor with metadata and origin.
-- **Matching**: exact/fuzzy/none with configurable threshold; match badges and fuzzy-match panel.
-- **Glossary & dictionary**: term suggestions per segment and term definitions in the sidebar.
+- **TM**: create, list (with target_language), match against database-stored TMs; optional seed from JSON.
+- **Segments**: extract from text via API; display and edit in segment editor; Fuzzy / TM match panel with insert.
+- **Matching**: exact/fuzzy/none (TM only, no AI fallback); match badges and fuzzy-match panel.
+- **Glossary & dictionary**: in DB with target_language; API filtered; term matches in right panel.
+- **Target language**: global list in backend; UI selector filters glossary, dictionary, TMs.
 
 What remains out of scope for “modernized” (and is covered in **New Features**) are: AI translation, cloud deployment, REST API design, and the modern tech stack choices.

@@ -27,10 +27,10 @@ OmegaCloud is a browser-based prototype that mimics a translation memory (TM) an
 ## Architecture
 
 ```
-┌─────────────┐         ┌─────────────────┐       ┌──────────────┐
-│  React SPA  │──REST──▶  FastAPI        │──DB───▶  MongoDB    │
-│  :5173      │         │  :8000          │       │  :27017      │
-│  (prototype │         │  rapidfuzz      │       └──────────────┘
+┌─────────────┐         ┌─────────────────┐       ┌──────────────────┐
+│  React SPA  │──REST──▶  FastAPI        │──DB───▶  MongoDB or SQL  │
+│  :5173      │         │  :8000          │       │  (configurable)  │
+│  (prototype │         │  rapidfuzz      │       └──────────────────┘
 │   UI)       │         │  matcher        │
 └─────────────┘         └─────────────────┘
 ```
@@ -92,7 +92,7 @@ The backend is structured so the storage layer can be swapped:
 - **Storage protocols** (`app/storage/protocols.py`) define the interface for glossary, dictionary, and TM. The API and business logic depend only on these interfaces.
 - **Backend choice**: set **`DATABASE_BACKEND=mongodb`** (default) or **`DATABASE_BACKEND=sql`**. With **sql**, an **ORM** (SQLAlchemy async) is used: models in `app/db/models.py`, session in `app/db/session.py`. Use **`DATABASE_URL`** for the connection string (e.g. `sqlite+aiosqlite:///./omegaweb.db` or `postgresql+asyncpg://...`). With **mongodb**, the existing Motor-based implementations in `app/storage/mongo/` are used. The correct repository implementation is selected in `app/core/dependencies.py`.
 
-**AI translation** is engine-agnostic. Implementations live in `app/providers/ai/`: the `AITranslationProvider` protocol (base) and a registry that selects by `AI_PROVIDER`. Supported: `openai`, `anthropic`. To add another engine, implement the protocol and register it in `app/providers/ai/registry.py`.
+**AI translation** is engine-agnostic. Implementations live in `app/providers/ai/`: the `AITranslationProvider` protocol (base), a registry that selects by `AI_PROVIDER` (supported: `openai`, `anthropic`), and **unified prompts** in `app/providers/ai/prompts.py` so all providers use the same translation prompt. To add another engine, implement the protocol and register it in `app/providers/ai/registry.py`.
 
 ---
 

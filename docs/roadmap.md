@@ -6,7 +6,7 @@ This document outlines how the **OmegaCloud** modernization project can escalate
 
 ## Current State: Prototype
 
-- **Scope**: Demo documents (embedded markdown), in-memory glossary/dictionary, MongoDB-backed TMs, fuzzy matching, segment editor, and optional AI (OpenAI).
+- **Scope**: Demo documents (embedded markdown, videogame history theme), glossary and dictionary in DB (seeded from JSON, filtered by target language), database-backed TMs (MongoDB or SQL), fuzzy matching with insert-from-TM, segment editor, target language selector (from `GET /languages`), and optional AI (OpenAI or Anthropic) with unified prompts.
 - **Audience**: Evaluation, demos, and experimentation — not production translation or sensitive data.
 - **Team**: Implicitly small (e.g. one or a few full-stack developers).
 
@@ -93,7 +93,7 @@ To grow into a product, the project should add roles, define phases, and align e
 - **Owner**: Backend + (optionally) localization.
 - **Actions**:
   - Allow TMs and glossaries to be shared at team level; support “project TM” vs “shared TM” if needed.
-  - Glossary: move from in-memory demo to DB (or file storage) and associate with project/team.
+  - Glossary and dictionary are already in DB (with target_language); extend to associate with project/team and sharing.
 - **Output**: Shared TM/glossary design and APIs.
 
 ### 2.3 Frontend & UX
@@ -142,7 +142,7 @@ To grow into a product, the project should add roles, define phases, and align e
 
 - **Owner**: Backend + (optionally) linguist/QA.
 - **Actions**:
-  - Support multiple AI providers (e.g. Azure OpenAI, local/on-prem models) via existing provider abstraction.
+  - The prototype already supports multiple AI providers (OpenAI, Anthropic) via `app/providers/ai/`; add more (e.g. Azure OpenAI, local/on-prem models) by implementing the provider protocol and registering.
   - Optional: **QA checks** (e.g. terminology consistency, numbers, placeholders) as in OmegaT; run on segment or on export.
   - Optional: **confidence** or “post-edit distance” for AI suggestions to drive analytics or training.
 - **Output**: Multi-provider AI, optional QA module, and (if applicable) confidence/analytics hooks.

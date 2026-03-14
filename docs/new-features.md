@@ -9,22 +9,17 @@ This document describes features that are **new** relative to the classic OmegaT
 ### Segment-level AI translation
 
 - **Trigger**: User clicks the wand icon on a segment (or equivalent “Translate with AI” action).
-- **Flow**: Frontend sends segment source + suggested glossary terms to `POST /ai/translate`. Backend uses the configured AI provider (e.g. OpenAI) to return a translation that respects the given terms.
-- **Provider**: OpenAI (GPT-4o-mini) via `OPENAI_API_KEY`. Prompt instructs the model to use approved terms and reply with only the translation.
+- **Flow**: Frontend sends segment source, suggested glossary terms, and optional `target_language` to `POST /ai/translate`. Backend uses the configured AI provider to return a translation.
+- **Provider**: Configurable via `AI_PROVIDER` (OpenAI or Anthropic). All providers use unified prompts from `app/providers/ai/prompts.py`; optional `target_language` is sent and included in the prompt.
 - **Result**: Translation is written into the segment with `origin: "ai_suggested"` and shown in the editor / diff view.
 
 ### Whole-document AI translation
 
 - **Trigger**: “Translate all with AI” (or “Translate whole document”) in the Source & translation view.
-- **Flow**: For each segment, frontend calls `POST /ai/translate` with segment source and the **full glossary** (not only segment-matched terms).
+- **Flow**: For each segment, frontend calls `POST /ai/translate` with segment source, full glossary, and selected target language.
 - **Result**: All segments receive AI suggestions; user can edit any segment afterward. Progress/loading state is shown during the run.
 
-### AI as fallback when there is no TM match
-
-- **Behavior**: In the matching service (`matcher.find_matches`), when a segment has no exact or fuzzy match above the threshold, the backend can call the AI provider to generate a suggestion.
-- **Result**: Segment is returned with `matchType: "none"`, `aiSuggested: true`, and the AI result in `target`. This blurs the line between “no match” and “AI suggestion” and gives the user a starting point for every segment.
-
-These three uses (per-segment, whole-document, fallback) form the **AI translation** feature set.
+**Note**: TM matching does not use AI as a fallback. When a segment has no exact or fuzzy TM match, the backend returns `matchType: "none"` with an empty target; the user can use the AI translate action explicitly if desired. All providers share the same prompt logic in `app/providers/ai/prompts.py` (`build_translation_prompt`).
 
 ---
 
@@ -33,7 +28,7 @@ These three uses (per-segment, whole-document, fallback) form the **AI translati
 | Aspect | OmegaT (Java) | OmegaCloud |
 |--------|----------------|------------|
 | **Runtime** | Desktop JVM | Browser (React SPA) + backend (FastAPI) |
-| **Data** | Local project folder, TMX on disk | MongoDB for TMs; demo docs embedded in frontend build |
+| **Data** | Local project folder, TMX on disk | Database (MongoDB or SQL) for TMs, glossary, dictionary; demo docs embedded in frontend build |
 | **Deployment** | Installer per OS | Docker Compose: frontend (:5173), API (:8000), MongoDB (:27017) |
 | **Access** | Single machine | Web; multiple users can use the same deployment (auth not yet in scope) |
 
@@ -47,9 +42,12 @@ OmegaT has no REST API; everything is file-based. OmegaCloud exposes:
 
 | Area | Endpoints | Purpose |
 |------|-----------|--------|
-| **TM** | `GET /tm`, `POST /tm`, `POST /tm/match` | List TMs, create TM, match segments against a TM |
+| **Languages** | `GET /languages` | List supported target languages (code, name); single source of truth for UI dropdown and AI prompts |
+| **TM** | `GET /tm`, `POST /tm`, `POST /tm/match` | List TMs (optional `?target_language=`), create TM (with target_language), match segments |
+| **Glossary** | `GET /glossary` | List glossary entries (optional `?target_language=` filter) |
+| **Dictionary** | `GET /dictionary` | List dictionary entries (optional `?target_language=` filter) |
 | **Docs** | `POST /docs/segments` | Extract segments from plain text |
-| **AI** | `POST /ai/translate` | Translate one segment with optional glossary terms |
+| **AI** | `POST /ai/translate` | Translate one segment with optional glossary terms and target_language |
 
 This enables:
 
@@ -63,9 +61,9 @@ This enables:
 
 - **Frontend**: React, TypeScript, Vite, TanStack Query, Tailwind CSS.
 - **Backend**: Python 3, FastAPI, Pydantic.
-- **Data**: MongoDB for TM storage; in-memory or file-based config for demo glossary/dictionary.
-- **Matching**: `rapidfuzz` for fuzzy matching (replacing or complementing OmegaT’s internal matcher).
-- **AI**: `openai` (async) for chat completions; provider abstraction in `ai_stub` for future providers (e.g. Azure, local models).
+- **Data**: Database-agnostic storage (MongoDB or SQL via SQLAlchemy). TMs, glossary, dictionary in DB; seed data in `backend/data/seeds/*.json`. Protocols in `app/storage/protocols.py`.
+- **Matching**: `rapidfuzz` for fuzzy matching; matcher uses TM only (no AI fallback).
+- **AI**: Engine-agnostic provider interface (`app/providers/ai/`); unified prompts in `prompts.py`; supported: OpenAI, Anthropic.
 - **Containers**: Docker and Docker Compose for consistent dev and deployment.
 
 This stack supports fast iteration, type safety, and scalability compared to a monolithic Java desktop app.
@@ -74,8 +72,9 @@ This stack supports fast iteration, type safety, and scalability compared to a m
 
 ## Configuration & Environment
 
-- **Backend `.env`**: MongoDB URL, `TM_FUZZY_THRESHOLD`, `OPENAI_API_KEY`, `AI_PROVIDER` (e.g. `openai`).
-- **Frontend**: Demo document list and glossary/dictionary live in `frontend/src/data/demo.ts`; demo markdown is embedded at build time.
+- **Backend `.env`**: `DATABASE_BACKEND` (mongodb or sql), `DATABASE_URL` (for SQL), MongoDB URL when using Mongo, `TM_FUZZY_THRESHOLD`, `AI_PROVIDER` (e.g. `openai`, `anthropic`) and the matching API key(s), optional `SEEDS_DIR`.
+- **Supported languages**: Defined in `backend/app/core/languages.py`; exposed at `GET /languages`. Frontend fetches this list for the target-language dropdown; AI providers use it for the prompt language name.
+- **Frontend**: Demo document list and markdown in `frontend/src/data/demo-documents/` (embedded at build time); glossary and dictionary from API.
 
 Configuration is environment-driven and suitable for different deployments (dev, staging, production) without code changes.
 
@@ -86,8 +85,8 @@ Configuration is environment-driven and suitable for different deployments (dev,
 **New** in OmegaCloud compared to OmegaT:
 
 1. **AI translation**: per-segment, whole-document, and as fallback for “no match”.
-2. **Cloud architecture**: browser UI, REST API, MongoDB, Docker.
-3. **REST API**: TM and doc operations and AI translation as HTTP endpoints.
-4. **Modern stack**: React/TypeScript, FastAPI, rapidfuzz, OpenAI integration.
+2. **Cloud architecture**: browser UI, REST API, database (MongoDB or SQL), Docker.
+3. **REST API**: languages, TM, glossary, dictionary, doc segmentation, AI translation; target_language filtering where applicable.
+4. **Modern stack**: React/TypeScript, FastAPI, rapidfuzz, database-agnostic storage, multi-provider AI.
 
 These features are documented here; evolution (e.g. more AI providers, auth, real project storage) is outlined in **Roadmap**.

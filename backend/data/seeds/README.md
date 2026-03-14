@@ -1,6 +1,6 @@
 # Seed data (database-agnostic)
 
-These JSON files are the single source of truth for initial data. The app loads them at startup when the database is empty (current backend: MongoDB). The same files can be used to seed any other database (PostgreSQL, SQLite, etc.) by writing a loader that reads these files and inserts into your store.
+These JSON files are the single source of truth for initial data. The app loads them at startup when the database is empty (backend: MongoDB or SQL, depending on `DATABASE_BACKEND`). The same files can be used to seed any database; the Mongo and SQL repository implementations in `app/storage/` both use this loader.
 
 ## Files
 
