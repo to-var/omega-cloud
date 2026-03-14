@@ -4,6 +4,16 @@
 
 OmegaCloud is a browser-based prototype that mimics a translation memory (TM) and CAT-tool workflow: load demo documents, extract segments, match against a TM, and use glossary suggestions and optional AI translation. All demo content is mock data.
 
+### Screenshots
+
+**OmegaT (desktop)**
+
+![OmegaT desktop](docs/screenshots/omega-t-desktop.png)
+
+**OmegaCloud (web)**
+
+![OmegaCloud web](docs/screenshots/omega-t-web.png)
+
 ---
 
 ## Architecture
