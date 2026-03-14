@@ -35,6 +35,17 @@ OmegaCloud is a browser-based prototype that mimics a translation memory (TM) an
 └─────────────┘         └─────────────────┘
 ```
 
+## OmegaT Business Rules Preserved
+
+The following core OmegaT behaviors are faithfully reimplemented:
+
+- **Exact match**: normalized string equality → `confidence: 100`, `matchType: "exact"`
+- **Fuzzy match**: Levenshtein similarity via rapidfuzz ≥ configurable threshold (default 75%) → `matchType: "fuzzy"`
+- **No match**: score below threshold → `matchType: "none"` (AI translation available separately)
+- **Normalization**: whitespace stripping and collapsing before comparison, preserving punctuation
+- **Glossary independence**: term detection runs regardless of TM match result
+- **TM/AI separation**: TM matching never falls back silently to AI — user intent is explicit
+
 ---
 
 ## Quick Start
@@ -74,7 +85,7 @@ Use the **document dropdown** in the header to switch between these demo documen
 3. **Select a Translation Memory** — Choose a TM from the sidebar (data in the database; add via API or scripts).
 4. **Run matching** — Click **Run Matching** to match segments against the selected TM. Match quality is shown with badges (exact / fuzzy / no match).
 5. **Segment editor** — Work in the segment editor or switch to the **Source & translation** diff view. Click a segment or focus its translation field to see **suggested terms** (glossary matches for that segment) in the right panel.
-6. **AI translation** — Click the wand icon on a segment, or “Translate whole document,” to request an AI-powered translation. The backend is engine-agnostic: set `AI_PROVIDER=openai` or `AI_PROVIDER=anthropic` in `backend/.env` and the matching API key.
+6. **AI translation** — Click the wand icon on a segment, or “Translate whole document,” to request an AI-powered translation. AI translation is provider-agnostic: OpenAI and Anthropic are supported out of the box; additional providers can be added by implementing the `AITranslationProvider` protocol.
 
 ---
 
@@ -93,9 +104,3 @@ The backend is structured so the storage layer can be swapped:
 - **Backend choice**: set **`DATABASE_BACKEND=mongodb`** (default) or **`DATABASE_BACKEND=sql`**. With **sql**, an **ORM** (SQLAlchemy async) is used: models in `app/db/models.py`, session in `app/db/session.py`. Use **`DATABASE_URL`** for the connection string (e.g. `sqlite+aiosqlite:///./omegaweb.db` or `postgresql+asyncpg://...`). With **mongodb**, the existing Motor-based implementations in `app/storage/mongo/` are used. The correct repository implementation is selected in `app/core/dependencies.py`.
 
 **AI translation** is engine-agnostic. Implementations live in `app/providers/ai/`: the `AITranslationProvider` protocol (base), a registry that selects by `AI_PROVIDER` (supported: `openai`, `anthropic`), and **unified prompts** in `app/providers/ai/prompts.py` so all providers use the same translation prompt. To add another engine, implement the protocol and register it in `app/providers/ai/registry.py`.
-
----
-
-## Disclaimer
-
-This project is a **prototype**. It is not intended as a final product. Use it only for evaluation and development. Do not use it for production translation or with sensitive data without proper security and compliance review.

@@ -25,12 +25,12 @@ This document describes features that are **new** relative to the classic OmegaT
 
 ## Cloud & Browser-Based Architecture
 
-| Aspect | OmegaT (Java) | OmegaCloud |
-|--------|----------------|------------|
-| **Runtime** | Desktop JVM | Browser (React SPA) + backend (FastAPI) |
-| **Data** | Local project folder, TMX on disk | Database (MongoDB or SQL) for TMs, glossary, dictionary; demo docs embedded in frontend build |
-| **Deployment** | Installer per OS | Docker Compose: frontend (:5173), API (:8000), MongoDB (:27017) |
-| **Access** | Single machine | Web; multiple users can use the same deployment (auth not yet in scope) |
+| Aspect         | OmegaT (Java)                     | OmegaCloud                                                                                    |
+| -------------- | --------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Runtime**    | Desktop JVM                       | Browser (React SPA) + backend (FastAPI)                                                       |
+| **Data**       | Local project folder, TMX on disk | Database (MongoDB or SQL) for TMs, glossary, dictionary; demo docs embedded in frontend build |
+| **Deployment** | Installer per OS                  | Docker Compose: frontend (:5173), API (:8000), MongoDB (:27017)                               |
+| **Access**     | Single machine                    | Web; multiple users can use the same deployment (auth not yet in scope)                       |
 
 The product is designed as a **cloud translation memory assistant**: no local install, centralized TMs, and optional AI, suitable for teams or cloud-first workflows.
 
@@ -40,14 +40,14 @@ The product is designed as a **cloud translation memory assistant**: no local in
 
 OmegaT has no REST API; everything is file-based. OmegaCloud exposes:
 
-| Area | Endpoints | Purpose |
-|------|-----------|--------|
-| **Languages** | `GET /languages` | List supported target languages (code, name); single source of truth for UI dropdown and AI prompts |
-| **TM** | `GET /tm`, `POST /tm`, `POST /tm/match` | List TMs (optional `?target_language=`), create TM (with target_language), match segments |
-| **Glossary** | `GET /glossary` | List glossary entries (optional `?target_language=` filter) |
-| **Dictionary** | `GET /dictionary` | List dictionary entries (optional `?target_language=` filter) |
-| **Docs** | `POST /docs/segments` | Extract segments from plain text |
-| **AI** | `POST /ai/translate` | Translate one segment with optional glossary terms and target_language |
+| Area           | Endpoints                               | Purpose                                                                                             |
+| -------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Languages**  | `GET /languages`                        | List supported target languages (code, name); single source of truth for UI dropdown and AI prompts |
+| **TM**         | `GET /tm`, `POST /tm`, `POST /tm/match` | List TMs (optional `?target_language=`), create TM (with target_language), match segments           |
+| **Glossary**   | `GET /glossary`                         | List glossary entries (optional `?target_language=` filter)                                         |
+| **Dictionary** | `GET /dictionary`                       | List dictionary entries (optional `?target_language=` filter)                                       |
+| **Docs**       | `POST /docs/segments`                   | Extract segments from plain text                                                                    |
+| **AI**         | `POST /ai/translate`                    | Translate one segment with optional glossary terms and target_language                              |
 
 This enables:
 
@@ -84,7 +84,7 @@ Configuration is environment-driven and suitable for different deployments (dev,
 
 **New** in OmegaCloud compared to OmegaT:
 
-1. **AI translation**: per-segment, whole-document, and as fallback for “no match”.
+1. **AI translation**: per-segment and whole-document, explicitly triggered by the user.
 2. **Cloud architecture**: browser UI, REST API, database (MongoDB or SQL), Docker.
 3. **REST API**: languages, TM, glossary, dictionary, doc segmentation, AI translation; target_language filtering where applicable.
 4. **Modern stack**: React/TypeScript, FastAPI, rapidfuzz, database-agnostic storage, multi-provider AI.
