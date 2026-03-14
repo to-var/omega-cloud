@@ -66,6 +66,14 @@ Use the **document dropdown** in the header to switch between these demo documen
 
 ---
 
+## Documentation
+
+- **[Modernized features](docs/modernized-features.md)** — Features brought from the OmegaT (Java) version (TM, segments, glossary, editor, etc.).
+- **[New features](docs/new-features.md)** — New capabilities such as AI translation, cloud architecture, and REST API.
+- **[Roadmap](docs/roadmap.md)** — How the modernization can escalate with a multidisciplinary team (MVP → collaboration → scale).
+
+---
+
 ## Disclaimer
 
 This project is a **prototype**. It is not intended as a final product. Use it only for evaluation and development. Do not use it for production translation or with sensitive data without proper security and compliance review.
